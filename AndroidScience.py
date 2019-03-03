@@ -67,19 +67,27 @@ df_user_reviews.head()
 # In[5]:
 
 
-df.info()
+orig_df = df.copy()
 
 
 # In[6]:
 
 
-df.describe()
+df.info()
 
 
 # ## Preprocessing
 # Many columns need preformatting to be able to use them in any machine learning models. They should be converted to numbers.
 
 # In[7]:
+
+
+# there are 1181 duplications in the 'name' column. What should we do about this?
+df['name'].duplicated().sum()
+# df[df['name'].duplicated()].sort_values('name').head(15)
+
+
+# In[8]:
 
 
 # preformat installs
@@ -90,23 +98,14 @@ new_df.astype(int).unique()
 df['installs'] = new_df.astype(int)
 
 
-# In[8]:
+# In[9]:
 
 
 # preformat reviews
 df['reviews'] = df['reviews'].astype(int)
 
 
-# In[9]:
-
-
-# Other preformat cells here !!!!!!!
-
-
-# ## Feature engineering
-# Features below are derived from the original features of data
-
-# In[9]:
+# In[10]:
 
 
 # preformat size
@@ -123,17 +122,80 @@ def size_transform(size):
 df['size'] = df['size'].apply(size_transform).astype(int)
 
 
-# In[10]:
-
-
-# preprocess last_updated
-# keep only the year
-df['last_year_updated'] = df['last_updated'].apply(lambda s : s[-4:]).astype(int)
-
-# todo: maybe convert this column to datetime object
-
-
 # In[11]:
+
+
+# preformat price
+# df['price'].unique()
+temp_df = df['price'].apply(lambda s: s.replace('$', ''))
+temp_df = temp_df.astype(float)
+df['price'] = temp_df
+
+
+# In[12]:
+
+
+# preformat type
+df['type'].unique()
+
+# there is one app that doesn't have type -> drop it
+# df['type'].isnull().sum()
+df.dropna(subset=['type'], inplace=True)
+# df['type'].isnull().sum()
+
+# convert 'type' column to category
+df['type'] = pd.Categorical(df['type'])
+
+
+# In[13]:
+
+
+# preformat category
+df['category'] = pd.Categorical(df['category'])
+
+
+# In[14]:
+
+
+# preformat content_rating
+df['content_rating'] = pd.Categorical(df['content_rating'])
+
+
+# In[15]:
+
+
+# preformat genres
+# there are 119 unique genres
+df['genres'].nunique()
+
+# keep only the first genre
+df['genres'].value_counts().tail(10)
+
+# there are 498 apps that have two genres
+df['genres'].str.contains(';').sum()
+
+df['genres'] = df['genres'].str.split(';').str[0]
+df['genres'] = pd.Categorical(df['genres'])
+
+# we are down to 48 unique genres
+df['genres'].nunique()
+
+
+# In[16]:
+
+
+# preformat last_updated -> convert it to difference in days
+df['last_updated'] = pd.to_datetime(df['last_updated'])
+
+# consider the max last_updated in df, the date of reference for the other last_updated 
+# last_updated will become a negative integer (the number of days between that date and date of reference)
+df['last_updated'] = (df['last_updated'] - df['last_updated'].max()).dt.days
+
+
+# ## Feature engineering
+# Features below are derived from the original features of data
+
+# In[17]:
 
 
 # preprocess name
@@ -141,7 +203,13 @@ df['last_year_updated'] = df['last_updated'].apply(lambda s : s[-4:]).astype(int
 df['name_wc'] = df['name'].apply(lambda s : len(s.replace('&','').replace('-', '').split()))
 
 
-# In[12]:
+# In[18]:
+
+
+df.head()
+
+
+# In[19]:
 
 
 # preprocess version & android_version
@@ -152,21 +220,21 @@ def vs_transform(version):
         return np.nan
     return version[0]
 # there are some edge cases that still need to be cared about
-df['version'].astype(str).sort_values()[-1600:]
+# df['version'].astype(str).sort_values()[-1600:]
+
 # df['major_version'] = df['version'].astype(str).apply(vs_transform).astype(int)
 # df['android_version'].astype(str).apply(vs_transform).astype(int)
 
 
-# In[13]:
+# In[20]:
 
 
 # drop columns not used
-orig_df = df.copy()
-drop_columns = ['name', 'last_updated', 'version', 'android_version']
+drop_columns = ['name', 'version', 'android_version']
 df.drop(columns = drop_columns, inplace = True)
 
 
-# In[14]:
+# In[21]:
 
 
 df.head()
@@ -176,7 +244,7 @@ df.head()
 # 
 # Rating column has 10% missing values. To not lose the data, we try and predict its values using the other features.
 
-# In[15]:
+# In[22]:
 
 
 # check for null values
@@ -184,35 +252,32 @@ df.head()
 df.isnull().sum()
 
 
-# In[16]:
+# In[23]:
 
 
 # get the rows with null ratings out, to predict them later
 to_predict_rating = df[df['rating'].isnull()]
-# dfn - df without nulls
-dfn = df[~df['rating'].isnull()]
-dfn.shape
-dfn.info()
-dfn.describe()
+
+df = df.dropna()
 
 
 # # Exploratory plots
 # We plot some data, to see its ranges
 
-# In[17]:
+# In[24]:
 
 
 fig, axs = plt.subplots(nrows = 2, ncols = 3);
 fig.suptitle('Histogram of values for some features', fontsize = 15);
-axs[0][0].hist(dfn['rating']);
+axs[0][0].hist(df['rating']);
 axs[0][0].set_xlabel('rating');
-axs[0][1].hist(dfn['reviews']);
+axs[0][1].hist(df['reviews']);
 axs[0][1].set_xlabel('reviews');
-axs[0][2].hist(dfn['installs']);
+axs[0][2].hist(df['installs']);
 axs[0][2].set_xlabel('installs');
-axs[1][0].hist(dfn['size']);
+axs[1][0].hist(df['size']);
 axs[1][0].set_xlabel('size');
-axs[1][1].hist(dfn['name_wc']);
+axs[1][1].hist(df['name_wc']);
 axs[1][1].set_xlabel('App Name WordCount');
 fig.subplots_adjust(right = 2);
 
@@ -221,10 +286,10 @@ fig.subplots_adjust(right = 2);
 # 
 # #### Correlation between "rating" and the other features
 
-# In[18]:
+# In[25]:
 
 
-correlation = dfn.corr()['rating']
+correlation = df.corr()['rating']
 plt.figure(figsize=(15,5))
 plt.ylabel('Correlation to "rating"')
 
@@ -238,18 +303,18 @@ plt.bar(correlation.index.values, correlation)
 
 # #### Correlation between all features
 
-# In[19]:
+# In[26]:
 
 
-k = len(dfn.columns.values) #number of variables for heatmap
-cols = dfn.corr().nlargest(k, 'rating')['rating'].index
-cm = dfn[cols].corr()
+k = len(df.columns.values) #number of variables for heatmap
+cols = df.corr().nlargest(k, 'rating')['rating'].index
+cm = df[cols].corr()
 
 # enlarge plot
 plt.figure(figsize=(10, 8), dpi= 80, facecolor='w', edgecolor='k')
 
 # plot heatmap
-sns.heatmap(cm, annot=True, cmap = 'viridis')
+sns.heatmap(cm, annot=True, cmap = 'coolwarm')
 
 
 # **Observations**
@@ -257,7 +322,7 @@ sns.heatmap(cm, annot=True, cmap = 'viridis')
 # - *reviews* and *installs* are strongly correlated
 # - *size* and *last_year_updated* may be somehow related
 
-# In[21]:
+# In[27]:
 
 
 # Because not all features are preprocessed yet, we got only to use 'Reviews' and 'Installs'. 
@@ -268,15 +333,24 @@ sns.heatmap(cm, annot=True, cmap = 'viridis')
 
 # # A linear model
 
-# In[20]:
+# In[28]:
+
+
+# convert categorical columns to int so that they can be used by ML models
+cat_columns = df.select_dtypes(['category']).columns
+cat_columns
+df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
+
+
+# In[29]:
 
 
 # we use .values because the ML models work with numpy arrays, not pandas dataframes
-Y = dfn['reviews'].values
-X = dfn[['installs']].values
+Y = df['reviews'].values
+X = df[['installs']].values
 
 
-# In[23]:
+# In[30]:
 
 
 # In some cases we may need to scale data. There are many types of scallers in the preprocessing module. 
@@ -288,7 +362,7 @@ X = dfn[['installs']].values
 # Y = scaler.fit_transform(Y.reshape(-1,1)).squeeze()
 
 
-# In[21]:
+# In[31]:
 
 
 # when creating a ML model, we split data in train and test 
@@ -297,7 +371,7 @@ from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[22]:
+# In[32]:
 
 
 from sklearn import linear_model
@@ -307,7 +381,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[23]:
+# In[33]:
 
 
 X_log = np.log(X)
@@ -315,7 +389,7 @@ Y_log = np.log(Y)
 x_train, x_test, y_train, y_test = train_test_split(X_log, Y_log, test_size = 0.2, random_state = 42)
 
 
-# In[24]:
+# In[34]:
 
 
 lr.fit(x_train, y_train)
@@ -323,10 +397,10 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[25]:
+# In[35]:
 
 
-dfn.columns
+df.columns
 fig, (ax1, ax2) = plt.subplots(nrows = 1, ncols = 2);
 fig.suptitle('Linear model between reviews and installs', fontsize = 15)
 fig.subplots_adjust(right = 2)
@@ -344,14 +418,14 @@ ax2.plot(X_log[:,0], y_pred, c = 'red');
 
 # ## Trying other modules
 
-# In[26]:
+# In[36]:
 
 
-Y = dfn['rating'].values
-X = dfn[['size', 'installs', 'reviews', 'last_year_updated', 'name_wc']]
+Y = df['rating'].values
+X = df[['size', 'installs', 'reviews', 'last_updated', 'name_wc', 'price', 'type']]
 
 
-# In[28]:
+# In[37]:
 
 
 from sklearn import svm
@@ -360,4 +434,10 @@ svr = svm.SVR()
 svr.fit(x_train, y_train)
 print('Train score : %.4f' % svr.score(x_train, y_train))
 print('Test score : %.4f' % svr.score(x_test, y_test))
+
+
+# In[ ]:
+
+
+
 
