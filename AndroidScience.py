@@ -3,7 +3,7 @@
 
 # # Android Data from PlayStore
 
-# In[1]:
+# In[2]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -17,7 +17,7 @@ from IPython.core.display import display, HTML
 display(HTML("<style>.container { width:100% !important; }</style>"))
 
 
-# In[2]:
+# In[3]:
 
 
 import pandas as pd
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[3]:
+# In[4]:
 
 
 # Load data
@@ -36,7 +36,7 @@ df.columns
 df_user_reviews.columns
 
 
-# In[4]:
+# In[5]:
 
 
 # rename columns
@@ -64,13 +64,13 @@ df_user_reviews.rename(
 df_user_reviews.head()
 
 
-# In[5]:
+# In[6]:
 
 
 orig_df = df.copy()
 
 
-# In[6]:
+# In[7]:
 
 
 df.info()
@@ -79,7 +79,7 @@ df.info()
 # ## Preprocessing
 # Many columns need preformatting to be able to use them in any machine learning models. They should be converted to numbers.
 
-# In[7]:
+# In[8]:
 
 
 # there are 1181 duplications in the 'name' column. What should we do about this?
@@ -87,7 +87,7 @@ df['name'].duplicated().sum()
 # df[df['name'].duplicated()].sort_values('name').head(15)
 
 
-# In[8]:
+# In[9]:
 
 
 # preformat installs
@@ -98,14 +98,14 @@ new_df.astype(int).unique()
 df['installs'] = new_df.astype(int)
 
 
-# In[9]:
+# In[10]:
 
 
 # preformat reviews
 df['reviews'] = df['reviews'].astype(int)
 
 
-# In[10]:
+# In[11]:
 
 
 # preformat size
@@ -122,7 +122,7 @@ def size_transform(size):
 df['size'] = df['size'].apply(size_transform).astype(int)
 
 
-# In[11]:
+# In[12]:
 
 
 # preformat price
@@ -132,7 +132,7 @@ temp_df = temp_df.astype(float)
 df['price'] = temp_df
 
 
-# In[12]:
+# In[13]:
 
 
 # preformat type
@@ -147,21 +147,21 @@ df.dropna(subset=['type'], inplace=True)
 df['type'] = pd.Categorical(df['type'])
 
 
-# In[13]:
+# In[14]:
 
 
 # preformat category
 df['category'] = pd.Categorical(df['category'])
 
 
-# In[14]:
+# In[15]:
 
 
 # preformat content_rating
 df['content_rating'] = pd.Categorical(df['content_rating'])
 
 
-# In[15]:
+# In[16]:
 
 
 # preformat genres
@@ -181,7 +181,7 @@ df['genres'] = pd.Categorical(df['genres'])
 df['genres'].nunique()
 
 
-# In[16]:
+# In[17]:
 
 
 # preformat last_updated -> convert it to difference in days
@@ -195,7 +195,7 @@ df['last_updated'] = (df['last_updated'] - df['last_updated'].max()).dt.days
 # ## Feature engineering
 # Features below are derived from the original features of data
 
-# In[17]:
+# In[18]:
 
 
 # preprocess name
@@ -203,13 +203,13 @@ df['last_updated'] = (df['last_updated'] - df['last_updated'].max()).dt.days
 df['name_wc'] = df['name'].apply(lambda s : len(s.replace('&','').replace('-', '').split()))
 
 
-# In[18]:
+# In[19]:
 
 
 df.head()
 
 
-# In[19]:
+# In[20]:
 
 
 # preprocess version & android_version
@@ -226,7 +226,7 @@ def vs_transform(version):
 # df['android_version'].astype(str).apply(vs_transform).astype(int)
 
 
-# In[20]:
+# In[21]:
 
 
 # drop columns not used
@@ -234,7 +234,7 @@ drop_columns = ['name', 'version', 'android_version']
 df.drop(columns = drop_columns, inplace = True)
 
 
-# In[21]:
+# In[22]:
 
 
 df.head()
@@ -244,7 +244,7 @@ df.head()
 # 
 # Rating column has 10% missing values. To not lose the data, we try and predict its values using the other features.
 
-# In[22]:
+# In[23]:
 
 
 # check for null values
@@ -252,7 +252,7 @@ df.head()
 df.isnull().sum()
 
 
-# In[23]:
+# In[24]:
 
 
 # get the rows with null ratings out, to predict them later
@@ -264,7 +264,7 @@ df = df.dropna()
 # # Exploratory plots
 # We plot some data, to see its ranges
 
-# In[24]:
+# In[25]:
 
 
 fig, axs = plt.subplots(nrows = 2, ncols = 3);
@@ -280,6 +280,28 @@ axs[1][0].set_xlabel('size');
 axs[1][1].hist(df['name_wc']);
 axs[1][1].set_xlabel('App Name WordCount');
 fig.subplots_adjust(right = 2);
+
+
+# In[26]:
+
+
+sns.pairplot(df)
+
+
+# In[45]:
+
+
+plt.figure(figsize=(12,7))
+ax = sns.countplot(x='category', data=df)
+_ = ax.set_xticklabels(ax.get_xticklabels(), rotation=90, ha="right")
+_ = plt.title('App count for each category',size = 20)
+
+
+# In[42]:
+
+
+plt.figure(figsize=(10,8))
+sns.scatterplot(x='rating', y='category', data=df, hue='type')
 
 
 # ### Let's visualize the correlation between features
