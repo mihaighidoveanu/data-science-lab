@@ -3,7 +3,7 @@
 
 # # Android Data from PlayStore
 
-# In[2]:
+# In[1]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -17,7 +17,7 @@ from IPython.core.display import display, HTML
 display(HTML("<style>.container { width:100% !important; }</style>"))
 
 
-# In[3]:
+# In[2]:
 
 
 import pandas as pd
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[4]:
+# In[3]:
 
 
 # Load data
@@ -36,7 +36,7 @@ df.columns
 df_user_reviews.columns
 
 
-# In[5]:
+# In[4]:
 
 
 # rename columns
@@ -64,13 +64,13 @@ df_user_reviews.rename(
 df_user_reviews.head()
 
 
-# In[6]:
+# In[5]:
 
 
 orig_df = df.copy()
 
 
-# In[7]:
+# In[6]:
 
 
 df.info()
@@ -79,7 +79,7 @@ df.info()
 # ## Preprocessing
 # Many columns need preformatting to be able to use them in any machine learning models. They should be converted to numbers.
 
-# In[8]:
+# In[7]:
 
 
 # there are 1181 duplications in the 'name' column. What should we do about this?
@@ -87,7 +87,7 @@ df['name'].duplicated().sum()
 # df[df['name'].duplicated()].sort_values('name').head(15)
 
 
-# In[9]:
+# In[8]:
 
 
 # preformat installs
@@ -98,14 +98,14 @@ new_df.astype(int).unique()
 df['installs'] = new_df.astype(int)
 
 
-# In[10]:
+# In[9]:
 
 
 # preformat reviews
 df['reviews'] = df['reviews'].astype(int)
 
 
-# In[11]:
+# In[10]:
 
 
 # preformat size
@@ -122,7 +122,7 @@ def size_transform(size):
 df['size'] = df['size'].apply(size_transform).astype(int)
 
 
-# In[12]:
+# In[11]:
 
 
 # preformat price
@@ -132,7 +132,7 @@ temp_df = temp_df.astype(float)
 df['price'] = temp_df
 
 
-# In[13]:
+# In[12]:
 
 
 # preformat type
@@ -147,21 +147,21 @@ df.dropna(subset=['type'], inplace=True)
 df['type'] = pd.Categorical(df['type'])
 
 
-# In[14]:
+# In[13]:
 
 
 # preformat category
 df['category'] = pd.Categorical(df['category'])
 
 
-# In[15]:
+# In[14]:
 
 
 # preformat content_rating
 df['content_rating'] = pd.Categorical(df['content_rating'])
 
 
-# In[16]:
+# In[15]:
 
 
 # preformat genres
@@ -181,7 +181,7 @@ df['genres'] = pd.Categorical(df['genres'])
 df['genres'].nunique()
 
 
-# In[17]:
+# In[16]:
 
 
 # preformat last_updated -> convert it to difference in days
@@ -195,7 +195,7 @@ df['last_updated'] = (df['last_updated'] - df['last_updated'].max()).dt.days
 # ## Feature engineering
 # Features below are derived from the original features of data
 
-# In[18]:
+# In[17]:
 
 
 # preprocess name
@@ -203,13 +203,13 @@ df['last_updated'] = (df['last_updated'] - df['last_updated'].max()).dt.days
 df['name_wc'] = df['name'].apply(lambda s : len(s.replace('&','').replace('-', '').split()))
 
 
-# In[19]:
+# In[18]:
 
 
 df.head()
 
 
-# In[20]:
+# In[19]:
 
 
 # preprocess version & android_version
@@ -226,7 +226,7 @@ def vs_transform(version):
 # df['android_version'].astype(str).apply(vs_transform).astype(int)
 
 
-# In[21]:
+# In[20]:
 
 
 # drop columns not used
@@ -234,7 +234,7 @@ drop_columns = ['name', 'version', 'android_version']
 df.drop(columns = drop_columns, inplace = True)
 
 
-# In[22]:
+# In[21]:
 
 
 df.head()
@@ -244,7 +244,7 @@ df.head()
 # 
 # Rating column has 10% missing values. To not lose the data, we try and predict its values using the other features.
 
-# In[23]:
+# In[22]:
 
 
 # check for null values
@@ -252,7 +252,7 @@ df.head()
 df.isnull().sum()
 
 
-# In[24]:
+# In[23]:
 
 
 # get the rows with null ratings out, to predict them later
@@ -282,13 +282,13 @@ axs[1][1].set_xlabel('App Name WordCount');
 fig.subplots_adjust(right = 2);
 
 
-# In[26]:
+# In[25]:
 
 
 sns.pairplot(df)
 
 
-# In[45]:
+# In[26]:
 
 
 plt.figure(figsize=(12,7))
@@ -297,7 +297,7 @@ _ = ax.set_xticklabels(ax.get_xticklabels(), rotation=90, ha="right")
 _ = plt.title('App count for each category',size = 20)
 
 
-# In[42]:
+# In[27]:
 
 
 plt.figure(figsize=(10,8))
@@ -308,7 +308,7 @@ sns.scatterplot(x='rating', y='category', data=df, hue='type')
 # 
 # #### Correlation between "rating" and the other features
 
-# In[25]:
+# In[28]:
 
 
 correlation = df.corr()['rating']
@@ -325,7 +325,7 @@ plt.bar(correlation.index.values, correlation)
 
 # #### Correlation between all features
 
-# In[26]:
+# In[30]:
 
 
 k = len(df.columns.values) #number of variables for heatmap
@@ -355,7 +355,7 @@ sns.heatmap(cm, annot=True, cmap = 'coolwarm')
 
 # # A linear model
 
-# In[28]:
+# In[31]:
 
 
 # convert categorical columns to int so that they can be used by ML models
@@ -364,7 +364,7 @@ cat_columns
 df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
 
 
-# In[29]:
+# In[32]:
 
 
 # we use .values because the ML models work with numpy arrays, not pandas dataframes
@@ -372,7 +372,7 @@ Y = df['reviews'].values
 X = df[['installs']].values
 
 
-# In[30]:
+# In[33]:
 
 
 # In some cases we may need to scale data. There are many types of scallers in the preprocessing module. 
@@ -384,7 +384,7 @@ X = df[['installs']].values
 # Y = scaler.fit_transform(Y.reshape(-1,1)).squeeze()
 
 
-# In[31]:
+# In[34]:
 
 
 # when creating a ML model, we split data in train and test 
@@ -393,7 +393,7 @@ from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[32]:
+# In[35]:
 
 
 from sklearn import linear_model
@@ -403,7 +403,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[33]:
+# In[36]:
 
 
 X_log = np.log(X)
@@ -411,7 +411,7 @@ Y_log = np.log(Y)
 x_train, x_test, y_train, y_test = train_test_split(X_log, Y_log, test_size = 0.2, random_state = 42)
 
 
-# In[34]:
+# In[37]:
 
 
 lr.fit(x_train, y_train)
@@ -419,7 +419,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[35]:
+# In[38]:
 
 
 df.columns
@@ -439,27 +439,74 @@ ax2.plot(X_log[:,0], y_pred, c = 'red');
 
 
 # ## Trying other modules
+# 
+# We transformed the problem in a classification one. Now rating can be *poor* (< 4) and *excellent* (>=4). We have around 57 % accuracy on the test data. 
+# 
+# **Next thing** : We should try adding or changing the features of data, and try more values for the hyperparameters of the algorithm
 
-# In[36]:
+# In[141]:
 
 
 Y = df['rating'].values
-X = df[['size', 'installs', 'reviews', 'last_updated', 'name_wc', 'price', 'type']]
+X = df[['size', 'name_wc', 'price', 'type']]
 
 
-# In[37]:
+# In[142]:
 
 
-from sklearn import svm
+Y = pd.cut(Y, 
+           bins=[0, 4, 5], 
+           labels=[0, 1])
+Y.value_counts()
+
+
+# In[143]:
+
+
+# the dataset is rather imbalanced, which will skew the results. So we reduce the number of big rating examples
+# we can also try upsampling the small rating examples
+from imblearn.under_sampling import RandomUnderSampler
+usampler = RandomUnderSampler(random_state = 42)
+X, Y = usampler.fit_resample(X,Y)
+
+
+# In[144]:
+
+
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
-svr = svm.SVR()
-svr.fit(x_train, y_train)
-print('Train score : %.4f' % svr.score(x_train, y_train))
-print('Test score : %.4f' % svr.score(x_test, y_test))
 
 
-# In[ ]:
+# In[145]:
 
 
+from sklearn import ensemble, tree, svm, neighbors
 
+
+from model import Model, ModelsBenchmark
+
+models = [svm.SVC(),
+          tree.DecisionTreeClassifier(),
+          ensemble.RandomForestClassifier(),
+          neighbors.KNeighborsClassifier()
+         ]
+
+bench = ModelsBenchmark(models)
+benchmarks = bench.compute_scores((x_train, y_train), (x_test, y_test))
+benchmarks
+
+
+# In[146]:
+
+
+# print and plot metrics for the best one
+from sklearn.metrics import confusion_matrix
+test_score = benchmarks[0][0]
+clf = benchmarks[0][1]
+y_pred = clf.predict(x_test)
+cnf_matrix = confusion_matrix(y_test, y_pred)
+sns.heatmap(cnf_matrix)
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+print(cnf_matrix)
+print('Accuracy : %.2f ' % test_score)
 
