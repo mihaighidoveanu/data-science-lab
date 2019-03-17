@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[3]:
+# In[150]:
 
 
 # Load data
@@ -36,7 +36,7 @@ df.columns
 df_user_reviews.columns
 
 
-# In[4]:
+# In[151]:
 
 
 # rename columns
@@ -64,13 +64,13 @@ df_user_reviews.rename(
 df_user_reviews.head()
 
 
-# In[5]:
+# In[152]:
 
 
 orig_df = df.copy()
 
 
-# In[6]:
+# In[153]:
 
 
 df.info()
@@ -79,7 +79,7 @@ df.info()
 # ## Preprocessing
 # Many columns need preformatting to be able to use them in any machine learning models. They should be converted to numbers.
 
-# In[7]:
+# In[154]:
 
 
 # there are 1181 duplications in the 'name' column. What should we do about this?
@@ -87,7 +87,7 @@ df['name'].duplicated().sum()
 # df[df['name'].duplicated()].sort_values('name').head(15)
 
 
-# In[8]:
+# In[155]:
 
 
 # preformat installs
@@ -98,14 +98,14 @@ new_df.astype(int).unique()
 df['installs'] = new_df.astype(int)
 
 
-# In[9]:
+# In[156]:
 
 
 # preformat reviews
 df['reviews'] = df['reviews'].astype(int)
 
 
-# In[10]:
+# In[157]:
 
 
 # preformat size
@@ -122,7 +122,7 @@ def size_transform(size):
 df['size'] = df['size'].apply(size_transform).astype(int)
 
 
-# In[11]:
+# In[158]:
 
 
 # preformat price
@@ -132,7 +132,7 @@ temp_df = temp_df.astype(float)
 df['price'] = temp_df
 
 
-# In[12]:
+# In[159]:
 
 
 # preformat type
@@ -147,21 +147,21 @@ df.dropna(subset=['type'], inplace=True)
 df['type'] = pd.Categorical(df['type'])
 
 
-# In[13]:
+# In[160]:
 
 
 # preformat category
 df['category'] = pd.Categorical(df['category'])
 
 
-# In[14]:
+# In[161]:
 
 
 # preformat content_rating
 df['content_rating'] = pd.Categorical(df['content_rating'])
 
 
-# In[15]:
+# In[162]:
 
 
 # preformat genres
@@ -181,7 +181,7 @@ df['genres'] = pd.Categorical(df['genres'])
 df['genres'].nunique()
 
 
-# In[16]:
+# In[163]:
 
 
 # preformat last_updated -> convert it to difference in days
@@ -189,13 +189,13 @@ df['last_updated'] = pd.to_datetime(df['last_updated'])
 
 # consider the max last_updated in df, the date of reference for the other last_updated 
 # last_updated will become a negative integer (the number of days between that date and date of reference)
-df['last_updated'] = (df['last_updated'] - df['last_updated'].max()).dt.days
+df['last_updated'] = abs((df['last_updated'] - df['last_updated'].max()).dt.days)
 
 
 # ## Feature engineering
 # Features below are derived from the original features of data
 
-# In[17]:
+# In[164]:
 
 
 # preprocess name
@@ -203,13 +203,13 @@ df['last_updated'] = (df['last_updated'] - df['last_updated'].max()).dt.days
 df['name_wc'] = df['name'].apply(lambda s : len(s.replace('&','').replace('-', '').split()))
 
 
-# In[18]:
+# In[165]:
 
 
 df.head()
 
 
-# In[19]:
+# In[166]:
 
 
 # preprocess version & android_version
@@ -226,7 +226,7 @@ def vs_transform(version):
 # df['android_version'].astype(str).apply(vs_transform).astype(int)
 
 
-# In[20]:
+# In[167]:
 
 
 # drop columns not used
@@ -234,7 +234,7 @@ drop_columns = ['name', 'version', 'android_version']
 df.drop(columns = drop_columns, inplace = True)
 
 
-# In[21]:
+# In[168]:
 
 
 df.head()
@@ -244,7 +244,7 @@ df.head()
 # 
 # Rating column has 10% missing values. To not lose the data, we try and predict its values using the other features.
 
-# In[22]:
+# In[169]:
 
 
 # check for null values
@@ -252,7 +252,7 @@ df.head()
 df.isnull().sum()
 
 
-# In[23]:
+# In[170]:
 
 
 # get the rows with null ratings out, to predict them later
@@ -264,7 +264,7 @@ df = df.dropna()
 # # Exploratory plots
 # We plot some data, to see its ranges
 
-# In[25]:
+# In[171]:
 
 
 fig, axs = plt.subplots(nrows = 2, ncols = 3);
@@ -325,7 +325,7 @@ plt.bar(correlation.index.values, correlation)
 
 # #### Correlation between all features
 
-# In[30]:
+# In[172]:
 
 
 k = len(df.columns.values) #number of variables for heatmap
@@ -355,7 +355,7 @@ sns.heatmap(cm, annot=True, cmap = 'coolwarm')
 
 # # A linear model
 
-# In[31]:
+# In[173]:
 
 
 # convert categorical columns to int so that they can be used by ML models
@@ -364,7 +364,7 @@ cat_columns
 df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
 
 
-# In[32]:
+# In[174]:
 
 
 # we use .values because the ML models work with numpy arrays, not pandas dataframes
@@ -384,7 +384,7 @@ X = df[['installs']].values
 # Y = scaler.fit_transform(Y.reshape(-1,1)).squeeze()
 
 
-# In[34]:
+# In[175]:
 
 
 # when creating a ML model, we split data in train and test 
@@ -393,7 +393,7 @@ from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[35]:
+# In[176]:
 
 
 from sklearn import linear_model
@@ -403,7 +403,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[36]:
+# In[177]:
 
 
 X_log = np.log(X)
@@ -411,7 +411,7 @@ Y_log = np.log(Y)
 x_train, x_test, y_train, y_test = train_test_split(X_log, Y_log, test_size = 0.2, random_state = 42)
 
 
-# In[37]:
+# In[178]:
 
 
 lr.fit(x_train, y_train)
@@ -419,7 +419,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[38]:
+# In[179]:
 
 
 df.columns
@@ -444,14 +444,14 @@ ax2.plot(X_log[:,0], y_pred, c = 'red');
 # 
 # **Next thing** : We should try adding or changing the features of data, and try more values for the hyperparameters of the algorithm
 
-# In[141]:
+# In[207]:
 
 
 Y = df['rating'].values
-X = df[['size', 'name_wc', 'price', 'type']]
+X = df[['size']]
 
 
-# In[142]:
+# In[208]:
 
 
 Y = pd.cut(Y, 
@@ -460,7 +460,7 @@ Y = pd.cut(Y,
 Y.value_counts()
 
 
-# In[143]:
+# In[213]:
 
 
 # the dataset is rather imbalanced, which will skew the results. So we reduce the number of big rating examples
@@ -468,15 +468,17 @@ Y.value_counts()
 from imblearn.under_sampling import RandomUnderSampler
 usampler = RandomUnderSampler(random_state = 42)
 X, Y = usampler.fit_resample(X,Y)
+len(Y[Y==1])
+len(Y[Y==0])
 
 
-# In[144]:
+# In[210]:
 
 
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[145]:
+# In[211]:
 
 
 from sklearn import ensemble, tree, svm, neighbors
@@ -495,7 +497,7 @@ benchmarks = bench.compute_scores((x_train, y_train), (x_test, y_test))
 benchmarks
 
 
-# In[146]:
+# In[212]:
 
 
 # print and plot metrics for the best one
