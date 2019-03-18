@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[150]:
+# In[3]:
 
 
 # Load data
@@ -36,7 +36,7 @@ df.columns
 df_user_reviews.columns
 
 
-# In[151]:
+# In[4]:
 
 
 # rename columns
@@ -64,13 +64,13 @@ df_user_reviews.rename(
 df_user_reviews.head()
 
 
-# In[152]:
+# In[5]:
 
 
 orig_df = df.copy()
 
 
-# In[153]:
+# In[6]:
 
 
 df.info()
@@ -79,7 +79,7 @@ df.info()
 # ## Preprocessing
 # Many columns need preformatting to be able to use them in any machine learning models. They should be converted to numbers.
 
-# In[154]:
+# In[7]:
 
 
 # there are 1181 duplications in the 'name' column. What should we do about this?
@@ -87,7 +87,7 @@ df['name'].duplicated().sum()
 # df[df['name'].duplicated()].sort_values('name').head(15)
 
 
-# In[155]:
+# In[8]:
 
 
 # preformat installs
@@ -98,14 +98,14 @@ new_df.astype(int).unique()
 df['installs'] = new_df.astype(int)
 
 
-# In[156]:
+# In[9]:
 
 
 # preformat reviews
 df['reviews'] = df['reviews'].astype(int)
 
 
-# In[157]:
+# In[10]:
 
 
 # preformat size
@@ -122,7 +122,7 @@ def size_transform(size):
 df['size'] = df['size'].apply(size_transform).astype(int)
 
 
-# In[158]:
+# In[11]:
 
 
 # preformat price
@@ -132,7 +132,7 @@ temp_df = temp_df.astype(float)
 df['price'] = temp_df
 
 
-# In[159]:
+# In[12]:
 
 
 # preformat type
@@ -147,21 +147,21 @@ df.dropna(subset=['type'], inplace=True)
 df['type'] = pd.Categorical(df['type'])
 
 
-# In[160]:
+# In[13]:
 
 
 # preformat category
 df['category'] = pd.Categorical(df['category'])
 
 
-# In[161]:
+# In[14]:
 
 
 # preformat content_rating
 df['content_rating'] = pd.Categorical(df['content_rating'])
 
 
-# In[162]:
+# In[15]:
 
 
 # preformat genres
@@ -181,7 +181,7 @@ df['genres'] = pd.Categorical(df['genres'])
 df['genres'].nunique()
 
 
-# In[163]:
+# In[16]:
 
 
 # preformat last_updated -> convert it to difference in days
@@ -195,7 +195,7 @@ df['last_updated'] = abs((df['last_updated'] - df['last_updated'].max()).dt.days
 # ## Feature engineering
 # Features below are derived from the original features of data
 
-# In[164]:
+# In[17]:
 
 
 # preprocess name
@@ -203,13 +203,13 @@ df['last_updated'] = abs((df['last_updated'] - df['last_updated'].max()).dt.days
 df['name_wc'] = df['name'].apply(lambda s : len(s.replace('&','').replace('-', '').split()))
 
 
-# In[165]:
+# In[18]:
 
 
 df.head()
 
 
-# In[166]:
+# In[19]:
 
 
 # preprocess version & android_version
@@ -226,7 +226,7 @@ def vs_transform(version):
 # df['android_version'].astype(str).apply(vs_transform).astype(int)
 
 
-# In[167]:
+# In[20]:
 
 
 # drop columns not used
@@ -234,7 +234,7 @@ drop_columns = ['name', 'version', 'android_version']
 df.drop(columns = drop_columns, inplace = True)
 
 
-# In[168]:
+# In[21]:
 
 
 df.head()
@@ -244,7 +244,7 @@ df.head()
 # 
 # Rating column has 10% missing values. To not lose the data, we try and predict its values using the other features.
 
-# In[169]:
+# In[22]:
 
 
 # check for null values
@@ -252,7 +252,7 @@ df.head()
 df.isnull().sum()
 
 
-# In[170]:
+# In[23]:
 
 
 # get the rows with null ratings out, to predict them later
@@ -264,7 +264,7 @@ df = df.dropna()
 # # Exploratory plots
 # We plot some data, to see its ranges
 
-# In[171]:
+# In[24]:
 
 
 fig, axs = plt.subplots(nrows = 2, ncols = 3);
@@ -325,7 +325,7 @@ plt.bar(correlation.index.values, correlation)
 
 # #### Correlation between all features
 
-# In[172]:
+# In[29]:
 
 
 k = len(df.columns.values) #number of variables for heatmap
@@ -355,7 +355,7 @@ sns.heatmap(cm, annot=True, cmap = 'coolwarm')
 
 # # A linear model
 
-# In[173]:
+# In[30]:
 
 
 # convert categorical columns to int so that they can be used by ML models
@@ -364,7 +364,7 @@ cat_columns
 df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
 
 
-# In[174]:
+# In[31]:
 
 
 # we use .values because the ML models work with numpy arrays, not pandas dataframes
@@ -384,7 +384,7 @@ X = df[['installs']].values
 # Y = scaler.fit_transform(Y.reshape(-1,1)).squeeze()
 
 
-# In[175]:
+# In[32]:
 
 
 # when creating a ML model, we split data in train and test 
@@ -393,7 +393,7 @@ from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[176]:
+# In[33]:
 
 
 from sklearn import linear_model
@@ -403,7 +403,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[177]:
+# In[34]:
 
 
 X_log = np.log(X)
@@ -411,7 +411,7 @@ Y_log = np.log(Y)
 x_train, x_test, y_train, y_test = train_test_split(X_log, Y_log, test_size = 0.2, random_state = 42)
 
 
-# In[178]:
+# In[35]:
 
 
 lr.fit(x_train, y_train)
@@ -419,7 +419,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[179]:
+# In[36]:
 
 
 df.columns
@@ -444,23 +444,24 @@ ax2.plot(X_log[:,0], y_pred, c = 'red');
 # 
 # **Next thing** : We should try adding or changing the features of data, and try more values for the hyperparameters of the algorithm
 
-# In[207]:
+# In[435]:
 
 
 Y = df['rating'].values
-X = df[['size']]
+X = df[['size', 'last_updated']]
 
 
-# In[208]:
+# In[436]:
 
 
+# split rating into two labels
 Y = pd.cut(Y, 
            bins=[0, 4, 5], 
            labels=[0, 1])
 Y.value_counts()
 
 
-# In[213]:
+# In[437]:
 
 
 # the dataset is rather imbalanced, which will skew the results. So we reduce the number of big rating examples
@@ -472,43 +473,147 @@ len(Y[Y==1])
 len(Y[Y==0])
 
 
-# In[210]:
+# In[395]:
+
+
+from sklearn import preprocessing
+# scale data if needed. forests and trees don't need it. Others do. 
+scale = True
+if scale:
+    scaler = preprocessing.StandardScaler()
+    X = scaler.fit_transform(X)
+
+
+# In[438]:
 
 
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[211]:
+# In[453]:
 
 
 from sklearn import ensemble, tree, svm, neighbors
-
-
+from sklearn.model_selection import cross_val_score
 from model import Model, ModelsBenchmark
 
-models = [svm.SVC(),
-          tree.DecisionTreeClassifier(),
-          ensemble.RandomForestClassifier(),
-          neighbors.KNeighborsClassifier()
+models = [
+#         svm.SVC(),
+        tree.DecisionTreeClassifier( min_impurity_decrease = 0, min_samples_leaf = 1, random_state = 42),
+#         neighbors.KNeighborsClassifier()
          ]
-
 bench = ModelsBenchmark(models)
-benchmarks = bench.compute_scores((x_train, y_train), (x_test, y_test))
-benchmarks
+
+# hyperparameters will be tuned agains the following score mean. 
+# This is called cross-validation and is done to avoid overfitting the test data
+scores = cross_val_score(bench[0], x_train, y_train, cv = 3)
+scores
+scores.mean()
 
 
-# In[212]:
+# In[454]:
+
+
+# reduce dimensionality to be able to plot data
+from sklearn.decomposition import PCA
+reduce = True
+if reduce :
+    pca = PCA(n_components = 2, random_state = 42);
+    pca.fit(x_train);
+    x_train = pca.transform(x_train);
+
+
+# In[455]:
 
 
 # print and plot metrics for the best one
 from sklearn.metrics import confusion_matrix
-test_score = benchmarks[0][0]
-clf = benchmarks[0][1]
-y_pred = clf.predict(x_test)
-cnf_matrix = confusion_matrix(y_test, y_pred)
-sns.heatmap(cnf_matrix)
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
+bench.fit(x_train, y_train)
+clf = bench[0]
+fig, axs = plt.subplots(nrows = 1, ncols = 3);
+fig.subplots_adjust(right = 2);
+axs[0].scatter(x_test[:, 0], x_test[:,1], c = y_test);
+axs[0].set_title('Data');
+axs[0].set_xlabel('x_0');
+axs[0].set_ylabel('x_1');
+test_cnf_matrix = confusion_matrix(y_test, clf.predict(x_test))
+sns.heatmap(test_cnf_matrix, ax = axs[1], vmin = 0);
+axs[1].set_title('Test');
+axs[1].set_xlabel('Predicted');
+axs[1].set_ylabel('Actual');
+train_cnf_matrix = confusion_matrix(y_train, clf.predict(x_train))
+sns.heatmap(train_cnf_matrix, ax = axs[2], vmin = 0);
+axs[2].set_title('Train');
+axs[2].set_xlabel('Predicted');
+axs[2].set_ylabel('Actual');
 print(cnf_matrix)
-print('Accuracy : %.2f ' % test_score)
+print('Train Accuracy : %.2f ' % clf.score(x_train, y_train))
+print('Test Accuracy : %.2f ' % clf.score(x_test, y_test))
+
+
+# In[456]:
+
+
+# plot both labels separately and our predictions on them
+fig, axs = plt.subplots(nrows = 1, ncols = 2)
+x_plot = x_train
+y_plot = y_train
+y_pred = clf.predict(x_plot)
+fig.subplots_adjust(right = 2)
+labeled_0 = x_plot[y_train == 0]
+scatter = axs[0].scatter(labeled_0[:,0], labeled_0[:, 1], c = y_pred[y_train ==  0])
+fig.colorbar(scatter, ax = axs[0])
+axs[0].set_title('Points with true label 0 ')
+labeled_1 = x_plot[y_train == 1]
+scatter = axs[1].scatter(labeled_1[:,0], labeled_1[:, 1], c = y_pred[y_train == 1] )
+fig.colorbar(scatter, ax = axs[1])
+axs[1].set_title('Points with true label 1 ')
+
+
+# In[450]:
+
+
+# print some correctly and incorrectly labeled data
+from random import randint
+y_pred = clf.predict(x_train)
+correct = x_train[y_pred == y_train]
+incorrect = x_train[~(y_pred == y_train)]
+
+def get_samples(x, y_true, y_pred, sample_type = 'correct', count = 5):
+    mask = (y_pred == y_train)
+    if sample_type == 'incorrect':
+        mask = ~mask
+    x = x[mask]
+    y_pred = y_pred[mask]
+    y_true = y_true[mask]
+    df = pd.DataFrame(columns=['x_0', 'x_1' , 'predicted', 'true'])
+    for _ in range(count):
+        idx = randint(0, len(x)) 
+        df = df.append({'x_0': x[idx][0], 'x_1' : x[idx][1], 'predicted' : y_pred[idx], 'true' : y_true[idx]},
+                       ignore_index=True)
+    return df
+
+print("====Correct samples =====")
+get_samples(x_train, y_train, y_pred, sample_type='correct') 
+print("====Incorrect samples =====")
+get_samples(x_train, y_train, y_pred, sample_type='incorrect') 
+
+
+# In[451]:
+
+
+# Visualisation of the decision tree created by the algorithm, for fun and insight
+import graphviz
+from sklearn.tree import export_graphviz
+clf = Model(tree.DecisionTreeClassifier(max_depth = 2))
+clf.compute_scores((x_train, y_train), (x_test, y_test))
+clf.model.tree_.max_depth
+dot_data = export_graphviz(clf.model,
+                           out_file=None,
+                           feature_names=['size', 'last_updated'],
+                           class_names=['fair', 'excellent'],
+                           filled=True,
+                           rounded=True)
+graph = graphviz.Source(dot_data)
+graph
 

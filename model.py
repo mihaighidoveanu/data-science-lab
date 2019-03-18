@@ -17,8 +17,16 @@ class ModelsBenchmark(collections.UserList):
     def __init__(self, models=[]):
         super(ModelsBenchmark, self).__init__(models)
 
+    def fit(self, x_train, y_train):
+        self.models = [model.fit(x_train, y_train) for model in self]
+           
+    def score(self, x, y):
+        scores = [model.score(x, y) for model in self]
+        self._sorted = sorted( zip(scores, self.models), key = lambda x : x[0], reverse = True)
+        return self._sorted
+        
     def compute_scores(self, train_data, test_data):
-        scores = [(Model(model).compute_scores(train_data, test_data)[1], model) for model in self]
+        scores = [(Model(model).compute_scores(train_data, test_data)[0], model) for model in self]
         self._sorted = sorted(scores, key=lambda x: x[0], reverse=True)
         return self._sorted
 
