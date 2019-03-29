@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[3]:
+# In[91]:
 
 
 # Load data
@@ -36,7 +36,7 @@ df.columns
 df_user_reviews.columns
 
 
-# In[4]:
+# In[92]:
 
 
 # rename columns
@@ -64,13 +64,13 @@ df_user_reviews.rename(
 df_user_reviews.head()
 
 
-# In[5]:
+# In[94]:
 
 
 orig_df = df.copy()
 
 
-# In[6]:
+# In[95]:
 
 
 df.info()
@@ -79,60 +79,64 @@ df.info()
 # ## Preprocessing
 # Many columns need preformatting to be able to use them in any machine learning models. They should be converted to numbers.
 
-# In[7]:
+# In[96]:
 
 
 # there are 1181 duplications in the 'name' column. What should we do about this?
-df['name'].duplicated().sum()
-# df[df['name'].duplicated()].sort_values('name').head(15)
+df.duplicated(subset = ['name']).sum()
+# remove duplicates 
+df = df[~df.duplicated(subset = ['name'], keep = 'first')]
 
 
-# In[8]:
+# In[97]:
 
 
 # preformat installs
 df = df[df['installs'] != 'Free']
 new_df = df['installs'].map(lambda s : s[:-1].replace(',',''))
 new_df[new_df == ''] = 0
-new_df.astype(int).unique()
 df['installs'] = new_df.astype(int)
+df['installs'].unique()
 
 
-# In[9]:
+# In[98]:
 
 
 # preformat reviews
 df['reviews'] = df['reviews'].astype(int)
+df['reviews'].head()
 
 
-# In[10]:
+# In[99]:
 
 
 # preformat size
 # np.sort(df['size'].unique())
+# transform sizes to kb units
 def size_transform(size):
     if size == 'Varies with device':
         return 1
     unit = size[-1]
     number = float(size[:-1])
     if unit == 'M':
-        return number * 1024 * 1024
+        return number * 1000
     if unit == 'k':
-        return number * 1024
+        return number
 df['size'] = df['size'].apply(size_transform).astype(int)
+df['size'].head()
 
 
-# In[11]:
+# In[100]:
 
 
 # preformat price
 # df['price'].unique()
 temp_df = df['price'].apply(lambda s: s.replace('$', ''))
-temp_df = temp_df.astype(float)
-df['price'] = temp_df
+df['price'] = temp_df.astype(float)
+df['price'].unique()
 
 
-# In[12]:
+# In[101]:
 
 
 # preformat type
@@ -147,41 +151,44 @@ df.dropna(subset=['type'], inplace=True)
 df['type'] = pd.Categorical(df['type'])
 
 
-# In[13]:
+# In[102]:
 
 
 # preformat category
 df['category'] = pd.Categorical(df['category'])
+df['category'].unique()
 
 
-# In[14]:
+# In[103]:
 
 
 # preformat content_rating
 df['content_rating'] = pd.Categorical(df['content_rating'])
+df['content_rating'].unique()
 
 
-# In[15]:
+# In[104]:
 
 
 # preformat genres
 # there are 119 unique genres
-df['genres'].nunique()
+print('Unique genres before preprocessing : %d' % df['genres'].nunique())
 
 # keep only the first genre
 df['genres'].value_counts().tail(10)
 
 # there are 498 apps that have two genres
-df['genres'].str.contains(';').sum()
+print(' Apps with more than one genre : %d ' % df['genres'].str.contains(';').sum())
 
 df['genres'] = df['genres'].str.split(';').str[0]
 df['genres'] = pd.Categorical(df['genres'])
 
 # we are down to 48 unique genres
-df['genres'].nunique()
+print('Unique genres : %d' % df['genres'].nunique())
+df['genres'].unique()
 
 
-# In[16]:
+# In[105]:
 
 
 # preformat last_updated -> convert it to difference in days
@@ -192,21 +199,53 @@ df['last_updated'] = pd.to_datetime(df['last_updated'])
 df['last_updated'] = abs((df['last_updated'] - df['last_updated'].max()).dt.days)
 
 
+# In[108]:
+
+
+print('Oldest updated app : %d' % df['last_updated'].max())
+
+
 # ## Feature engineering
 # Features below are derived from the original features of data
 
-# In[17]:
+# In[131]:
 
 
 # preprocess name
 # keep the word count of the app name
-df['name_wc'] = df['name'].apply(lambda s : len(s.replace('&','').replace('-', '').split()))
+import string
+
+def remove_punctuation(s):
+    return s.translate(str.maketrans('', '', string.punctuation))
+
+df['name_wc'] = df['name'].apply(lambda s : len(remove_punctuation(s).split()))
 
 
-# In[18]:
+# In[120]:
 
 
-df.head()
+max_idx = df['name_wc'].idxmax()
+print('Longest name with %d words : %s ' % (df.iloc[max_idx,:]['name_wc'], df.iloc[max_idx,:]['name'])) 
+
+
+# In[144]:
+
+
+df['name_wc'].max()
+print('Longest app name with %d words : %d' % df['name'][df['name_wc'].idxmax()]
+df['name'][df['name_wc'].idxmin()]
+
+
+# In[137]:
+
+
+len(remove_punctuation(names[1451]).split())
+
+
+# In[129]:
+
+
+names.apply(lambda s : len(s)).idxmax()
 
 
 # In[19]:
@@ -490,7 +529,7 @@ if scale:
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[453]:
+# In[457]:
 
 
 from sklearn import ensemble, tree, svm, neighbors
@@ -499,8 +538,8 @@ from model import Model, ModelsBenchmark
 
 models = [
 #         svm.SVC(),
-        tree.DecisionTreeClassifier( min_impurity_decrease = 0, min_samples_leaf = 1, random_state = 42),
-#         neighbors.KNeighborsClassifier()
+#         tree.DecisionTreeClassifier( min_impurity_decrease = 0, min_samples_leaf = 1, random_state = 42),
+        neighbors.KNeighborsClassifier(n_neighbors = 2)
          ]
 bench = ModelsBenchmark(models)
 
