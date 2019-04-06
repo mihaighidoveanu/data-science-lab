@@ -3,7 +3,7 @@
 
 # # Android Data from PlayStore
 
-# In[46]:
+# In[21]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -17,7 +17,7 @@ from IPython.core.display import display, HTML
 display(HTML("<style>.container { width:100% !important; }</style>"))
 
 
-# In[47]:
+# In[22]:
 
 
 import pandas as pd
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[49]:
+# In[23]:
 
 
 # load data
@@ -36,7 +36,7 @@ df = get_data()
 
 # # Standardization of the dataset
 
-# In[48]:
+# In[24]:
 
 
 from sklearn import preprocessing
@@ -48,7 +48,7 @@ if scale :
     
 
 
-# In[49]:
+# In[25]:
 
 
 df.head()
@@ -57,33 +57,48 @@ df.head()
 # # Exploratory plots
 # We plot some data, to see its ranges
 
-# In[43]:
+# In[49]:
 
 
 features = df.columns.values
+features
 
 
-# In[591]:
+# In[53]:
 
 
-# features = ['rating', 'size', 'installs']
-ncols = 3
-nrows = len(features) // ncols + 2
-fig, axs = plt.subplots(nrows = nrows, ncols = ncols);
-# fig.suptitle('Distributions for features', fontsize = 15);
-print('Histogram of features')
-cidx = 0
-ridx = 0
-for idx, feature in enumerate(features):
-    sns.distplot(df[feature], kde = False, ax = axs[ridx][cidx] )
-#     axs[ridx][cidx].hist(df[feature])
-#     axs[ridx][cidx].set_xlabel(feature)
-    if cidx == ncols - 1:
-        ridx += 1
-        cidx = 0
-    else :
-        cidx += 1
-fig.subplots_adjust(right = 2, top = 6);
+def plot_distributions(df, features, kde = True):
+    ncols = 3
+    nrows = len(features) // ncols + 2
+    fig, axs = plt.subplots(nrows = nrows, ncols = ncols);
+    # fig.suptitle('Distributions for features', fontsize = 15);
+    print('Histogram of features')
+    cidx = 0
+    ridx = 0
+    for idx, feature in enumerate(features):
+        sns.distplot(df[feature], kde = kde, ax = axs[ridx][cidx] )
+    #     axs[ridx][cidx].hist(df[feature])
+    #     axs[ridx][cidx].set_xlabel(feature)
+        if cidx == ncols - 1:
+            ridx += 1
+            cidx = 0
+        else :
+            cidx += 1
+    fig.subplots_adjust(right = 2, top = 4);
+
+
+# In[29]:
+
+
+plot_distributions(df, features)
+
+
+# In[56]:
+
+
+log_features = ['reviews', 'installs', 'name_wc', 'size', 'rating']
+log_df = df[log_features].apply(np.log, axis = 1)
+plot_distributions(log_df, log_features)
 
 
 # # To do 
@@ -102,13 +117,7 @@ plot_features = ['category', 'rating', 'reviews', 'size', 'installs', 'type', 'p
                 'name_wc']
 
 
-# In[44]:
-
-
-log_features = ['rating', 'reviews', 'size', 'installs', 'android_version', 'name_wc']
-
-
-# In[45]:
+# In[57]:
 
 
 sns.pairplot(np.log(df[log_features]))
@@ -192,7 +201,7 @@ sns.heatmap(cm, annot=True, cmap = 'coolwarm')
 
 # # A linear model
 
-# In[627]:
+# In[6]:
 
 
 # we use .values because the ML models work with numpy arrays, not pandas dataframes
@@ -212,7 +221,7 @@ X = df[['installs']].values
 # Y = scaler.fit_transform(Y.reshape(-1,1)).squeeze()
 
 
-# In[628]:
+# In[7]:
 
 
 # when creating a ML model, we split data in train and test 
@@ -221,7 +230,7 @@ from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[629]:
+# In[8]:
 
 
 from sklearn import linear_model
@@ -231,7 +240,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[630]:
+# In[9]:
 
 
 X_log = np.log(X)
@@ -239,7 +248,7 @@ Y_log = np.log(Y)
 x_train, x_test, y_train, y_test = train_test_split(X_log, Y_log, test_size = 0.2, random_state = 42)
 
 
-# In[631]:
+# In[10]:
 
 
 lr.fit(x_train, y_train)
@@ -247,7 +256,7 @@ print('Train R squared : %.4f' % lr.score(x_train,y_train))
 print('Test R squared : %.4f' % lr.score(x_test,y_test))
 
 
-# In[632]:
+# In[18]:
 
 
 df.columns
@@ -260,8 +269,15 @@ ax1.set_xlabel('installs');
 ax1.set_ylabel('reviews');
 ax2.set_title('Log data')
 ax2.scatter(X_log[:,0], Y_log);
-ax2.set_xlabel('installs_log')
+ax2.set_xlabel('installs_log');
 ax2.set_ylabel('reviews_log');
 y_pred = lr.predict(X_log)
-ax2.plot(X_log[:,0], y_pred, c = 'red');
+ax2.plot(X_log[:,0], X_log[:,0] * lr.coef_ + lr.intercept_, c = 'red');
+
+
+# In[16]:
+
+
+lr.coef_
+lr.intercept_
 

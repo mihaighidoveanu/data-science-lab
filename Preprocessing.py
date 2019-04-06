@@ -88,7 +88,7 @@ df.info()
 # In[8]:
 
 
-# there are 1181 duplications in the 'name' column. What should we do about this?
+# there are 1181 duplications in the 'name' column
 print('Number of duplicate entries : %d' % df.duplicated(subset = ['name']).sum())
 # remove duplicates 
 df = df[~df.duplicated(subset = ['name'], keep = 'first')]
