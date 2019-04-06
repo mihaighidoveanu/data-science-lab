@@ -22,13 +22,16 @@ class ModelsBenchmark(collections.UserList):
            
     def score(self, x, y):
         scores = [model.score(x, y) for model in self]
-        self._sorted = sorted( zip(scores, self.models), key = lambda x : x[0], reverse = True)
-        return self._sorted
+        self._scores = sorted( zip(scores, self.models), key = lambda x : x[0], reverse = True)
+        self._sorted = list(map(lambda tpl : tpl[1], self._scores))
+        return self._scores
         
     def compute_scores(self, train_data, test_data):
         scores = [(Model(model).compute_scores(train_data, test_data)[0], model) for model in self]
-        self._sorted = sorted(scores, key=lambda x: x[0], reverse=True)
-        return self._sorted
+        self._scores = sorted(scores, key=lambda x: x[0], reverse=True)
+        self._sorted = list(map(lambda tpl : tpl[1], self._scores))
+
+        return self._scores
 
 
 #TESTING
