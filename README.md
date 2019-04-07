@@ -14,3 +14,9 @@ https://www.kaggle.com/lava18/all-that-you-need-to-know-about-the-android-market
 https://www.kaggle.com/ronitf/heart-disease-uci
 https://www.kaggle.com/jsphyg/weather-dataset-rattle-package
 https://www.kaggle.com/spscientist/students-performance-in-exams
+https://www.kaggle.com/new-york-city/nyc-property-sales
+
+## cool datasets
+https://www.kaggle.com/c/GiveMeSomeCredit
+https://www.kaggle.com/c/bike-sharing-demand/
+
