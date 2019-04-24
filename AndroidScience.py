@@ -3,7 +3,7 @@
 
 # # Android Data from PlayStore
 
-# In[213]:
+# In[1]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -17,7 +17,7 @@ from IPython.core.display import display, HTML
 display(HTML("<style>.container { width:100% !important; }</style>"))
 
 
-# In[214]:
+# In[2]:
 
 
 import pandas as pd
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[215]:
+# In[3]:
 
 
 # load data
@@ -47,20 +47,20 @@ orig_df = df.copy()
 #     + this may mean that the model is too complex. reducing the number of features took into account can help
 # **Next thing** : We should try adding or changing the features of data, and try more values for the hyperparameters of the algorithm
 
-# In[312]:
+# In[4]:
 
 
 df = orig_df.copy()
 
 
-# In[313]:
+# In[5]:
 
 
 features = df.columns.values
 features
 
 
-# In[314]:
+# In[6]:
 
 
 pre_features = ['category', 'size', 'type', 'price', 'content_rating', 'genres', 'android_version', 'name_wc']
@@ -68,19 +68,19 @@ post_features = [feature for feature in df.columns.values if feature not in pre_
 log_features = ['reviews', 'installs', 'name_wc', 'size', 'rating']
 
 
-# In[315]:
+# In[7]:
 
 
 df[log_features] = np.log(df[log_features])
 
 
-# In[316]:
+# In[8]:
 
 
 sns.distplot(df['installs'])
 
 
-# In[317]:
+# In[9]:
 
 
 from scipy import stats
@@ -92,13 +92,13 @@ if remove_outliers:
     df = df[~mask]
 
 
-# In[318]:
+# In[10]:
 
 
 df['installs'].describe()
 
 
-# In[319]:
+# In[11]:
 
 
 Y = df['installs'].values
@@ -106,7 +106,7 @@ X = df.drop(columns = ['installs'])
 X = X[pre_features].values
 
 
-# In[321]:
+# In[12]:
 
 
 # split rating into two labels
@@ -114,28 +114,28 @@ bins = [Y.min(), np.percentile(Y, 75), Y.max()]
 bins
 
 
-# In[322]:
+# In[13]:
 
 
 Y[Y < bins[1]] = 0
 Y[Y >= bins[1]] = 1
 
 
-# In[327]:
+# In[14]:
 
 
 (Y == 0).sum()
 (Y == 1).sum()
 
 
-# In[328]:
+# In[15]:
 
 
 from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42)
 
 
-# In[326]:
+# In[16]:
 
 
 from sklearn.linear_model import Ridge
@@ -145,7 +145,7 @@ reg.score(x_train, y_train)
 sns.regplot(y_train, reg.predict(x_train))
 
 
-# In[329]:
+# In[17]:
 
 
 # the dataset is rather imbalanced, which will skew the results. So we reduce the number of big rating examples
@@ -159,7 +159,7 @@ len(y_train[y_train==1])
 len(y_train[y_train==0])
 
 
-# In[330]:
+# In[18]:
 
 
 from sklearn import preprocessing
@@ -172,7 +172,7 @@ if scale:
     x_test = scaler.transform(x_test)
 
 
-# In[331]:
+# In[19]:
 
 
 from sklearn import ensemble, tree, svm, neighbors
@@ -192,7 +192,7 @@ bench.score(x_test, y_test);
 bench._scores
 
 
-# In[332]:
+# In[20]:
 
 
 # hyperparameters will be tuned agains the following score mean. 
@@ -207,7 +207,7 @@ clf.score(x_test,y_test)
 
 # # Evaluating models
 
-# In[333]:
+# In[21]:
 
 
 # reduce dimensionality to be able to plot data
@@ -221,7 +221,7 @@ def reduce_dimensions(X, fit=False):
     return pca.transform(X)
 
 
-# In[334]:
+# In[22]:
 
 
 # print and plot metrics for the best one
@@ -256,13 +256,13 @@ print('Train Accuracy : %.2f ' % clf.score(x_train, y_train))
 print('Test Accuracy : %.2f ' % clf.score(x_test, y_test))
 
 
-# In[335]:
+# In[23]:
 
 
 clf = ensemble.RandomForestClassifier(n_estimators=100, min_impurity_decrease=0, min_samples_leaf=1, random_state=42)
 
 
-# In[337]:
+# In[24]:
 
 
 # plot both labels separately and our predictions on them
@@ -288,13 +288,13 @@ fig.colorbar(scatter, ax = axs[1])
 axs[1].set_title('Points with true label 1 ')
 
 
-# In[73]:
+# In[25]:
 
 
 y_pred == 0
 
 
-# In[57]:
+# In[26]:
 
 
 # print some correctly and incorrectly labeled data
@@ -332,7 +332,7 @@ print("====Incorrect samples =====")
 get_samples(x_test, y_test, y_pred, sample_type='incorrect') 
 
 
-# In[62]:
+# In[ ]:
 
 
 # Visualisation of the decision tree created by the algorithm, for fun and insight
@@ -353,7 +353,7 @@ graph
 
 # # Neural network model
 
-# In[188]:
+# In[28]:
 
 
 import keras
@@ -376,7 +376,7 @@ model.add(layers.Dense(num_classes, activation='softmax'))
 model.summary()
 
 
-# In[189]:
+# In[29]:
 
 
 model.compile(loss='categorical_crossentropy',
@@ -384,7 +384,7 @@ model.compile(loss='categorical_crossentropy',
             metrics=['accuracy'])
 
 
-# In[190]:
+# In[30]:
 
 
 from keras.utils import to_categorical
@@ -393,24 +393,20 @@ batch_size = 1024
 history = model.fit(x_train, to_categorical(y_train), batch_size = batch_size, epochs = no_epochs )
 
 
-# In[171]:
+# In[31]:
 
 
 model.evaluate(x_test, to_categorical(y_test))
 
 
-# In[186]:
+# In[ ]:
 
 
-df = pd.DataFrame({'epochs':history.epoch, 'loss': history.history['loss'], 
+# df = pd.DataFrame({'epochs':history.epoch, 'loss': history.history['loss'], 
 #                    'validation_loss': history.history['val_loss']
                   })
 g = sns.pointplot(x="epochs", y="loss", data=df, fit_reg=False, color = 'yellow')
 # g = sns.pointplot(x="epochs", y="validation_loss", data=df, fit_reg=False, color='red')
-
-
-# In[172]:
-
 
 import seaborn as sns
 df = pd.DataFrame({'epochs':history.epoch, 'accuracy': history.history['acc']
@@ -418,4 +414,34 @@ df = pd.DataFrame({'epochs':history.epoch, 'accuracy': history.history['acc']
                   })
 g = sns.pointplot(x="epochs", y="accuracy", data=df, fit_reg=False)
 # g = sns.pointplot(x="epochs", y="validation_accuracy", data=df, fit_reg=False, color='green')
+# # Model voting 
+
+# In[114]:
+
+
+from sklearn.ensemble import VotingClassifier
+from collections import Counter
+estimators = [
+    ('svc', svm.SVC(kernel ='rbf', random_state=42, probability=True)),
+    ('rf', ensemble.RandomForestClassifier(n_estimators=100, min_impurity_decrease=0, min_samples_leaf=1, random_state=42)),
+    ('knn', neighbors.KNeighborsClassifier(n_neighbors=2))
+]
+weights = [112, 89, 1]
+voting_classifier = VotingClassifier(estimators=estimators, voting='soft', weights=weights, n_jobs=-1)
+voting_classifier.fit(x_train, y_train)
+confidence = voting_classifier.score(x_test, y_test)
+predictions = voting_classifier.predict(x_test)
+print('accuracy: %s %s' % (confidence, weights))
+print('predictions:', Counter(predictions))
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
 
