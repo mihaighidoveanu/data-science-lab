@@ -3,7 +3,7 @@
 
 # # Android Data from PlayStore
 
-# In[39]:
+# In[ ]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -17,7 +17,7 @@ from IPython.core.display import display, HTML
 display(HTML("<style>.container { width:100% !important; }</style>"))
 
 
-# In[40]:
+# In[ ]:
 
 
 import pandas as pd
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-# In[41]:
+# In[ ]:
 
 
 # load data
@@ -47,20 +47,20 @@ orig_df = df.copy();
 #     + this may mean that the model is too complex. reducing the number of features took into account can help
 # **Next thing** : We should try adding or changing the features of data, and try more values for the hyperparameters of the algorithm
 
-# In[194]:
+# In[ ]:
 
 
 df = orig_df.copy()
 
 
-# In[195]:
+# In[ ]:
 
 
 features = df.columns.values.tolist()
 print(features)
 
 
-# In[196]:
+# In[ ]:
 
 
 pre_features = ['category', 'size', 'type', 'price', 'content_rating', 'genres', 'android_version', 'name_wc']
@@ -69,7 +69,7 @@ log_features = ['reviews', 'installs', 'name_wc', 'size', 'rating']
 cat_features = ['category', 'type', 'content_rating', 'genres']
 
 
-# In[197]:
+# In[ ]:
 
 
 use_categories = True
@@ -82,7 +82,7 @@ else:
 print('Predictors are : %s' % pre_features)
 
 
-# In[198]:
+# In[ ]:
 
 
 use_log = False
@@ -90,7 +90,7 @@ if use_log:
     df[log_features] = np.log(df[log_features])
 
 
-# In[199]:
+# In[ ]:
 
 
 from sklearn.model_selection import train_test_split
@@ -102,7 +102,7 @@ test.shape
 # ## Preprocessing
 # Missing values and outliers removal
 
-# In[200]:
+# In[ ]:
 
 
 from OutlierIQR import OutlierIQR
@@ -117,7 +117,7 @@ train.shape
 test.shape
 
 
-# In[201]:
+# In[ ]:
 
 
 # Impute missing values using the median so we will not treat them as outliers later
@@ -132,7 +132,7 @@ test.loc[:, missing_features] = imp.transform(test[missing_features])
 # ## Starting machine learning
 # Split data into predictors and labels, both for train and test
 
-# In[202]:
+# In[ ]:
 
 
 def split_samples_labels(df, label_column, keep_features = None):
@@ -146,7 +146,7 @@ def split_samples_labels(df, label_column, keep_features = None):
     return X, Y
 
 
-# In[203]:
+# In[ ]:
 
 
 x_train, y_train = split_samples_labels(train, 'installs', keep_features=pre_features)
@@ -158,14 +158,14 @@ x_test.shape
 # ## Additional enhancements
 # Oversampling and scaling
 
-# In[204]:
+# In[ ]:
 
 
 len(y_train[y_train==1])
 len(y_train[y_train==0])
 
 
-# In[206]:
+# In[ ]:
 
 
 # the dataset is rather imbalanced, which will skew the results. So we reduce the number of big rating examples
@@ -184,7 +184,7 @@ len(y_train[y_train==1])
 len(y_train[y_train==0])
 
 
-# In[207]:
+# In[ ]:
 
 
 from sklearn import preprocessing
@@ -199,7 +199,7 @@ if scale:
 
 # ## Tuning models hyperparameters
 
-# In[208]:
+# In[ ]:
 
 
 from sklearn import ensemble, tree, svm, neighbors
@@ -223,7 +223,7 @@ else:
     print('Test score : %.2f' % knn.score(x_test, y_test));
 
 
-# In[160]:
+# In[ ]:
 
 
 # SVC
@@ -245,76 +245,190 @@ if fit_grid:
 else :
     print('Validation score %.2f' % cross_val_score(svc, x_train, y_train, cv = 5).mean())
     svc.fit(x_train, y_train)
-    print('Test score %.2f' % svc.score(x_train, y_train))
+    print('Test score %.2f' % svc.score(x_test, y_test))
 
 
-# In[57]:
+# In[ ]:
 
 
 grid.best_estimator_
 
 
-# In[209]:
+# In[ ]:
 
 
 # Random Forest
-rf =  ensemble.RandomForestClassifier(n_estimators=100, random_state = 42,
-                                       min_impurity_decrease=0, min_samples_leaf=1,
-                                        max_features = 3)
+rf =  ensemble.RandomForestClassifier(random_state = 42, max_features=2, max_depth=12, n_estimators=30, min_samples_split=5)
 grid_fit = False
 if grid_fit:
-    params = {'max_features' : [3],
-             'min_samples_leaf' : [1]}
-    grid = GridSearchCV(estimator = rf,
-                  param_grid = params,
-                  cv = 5, iid = False, return_train_score=True)
+    params = {
+        'max_features' : [2, 4, 5],
+        'max_depth' : [12], # 10, 8, 18],
+        'min_samples_split' : [5], #, 2, 7, 10],
+        'n_estimators': [30, 20, 40]
+    }
+    grid = GridSearchCV(
+        estimator = rf, 
+        param_grid = params,
+        cv = 5, 
+        iid = False, 
+        return_train_score=True,
+        n_jobs=-1
+    )
     grid.fit(x_train, y_train)
     grid.score(x_test, y_test)
+    print('Best score: %f' % grid.best_score_)
+    print('Best params: %s' % grid.best_params_)
 else:
     rf.fit(x_train, y_train)
     rf.score(x_train, y_train)
     rf.score(x_test, y_test)
 
 
-# In[60]:
+# In[ ]:
 
 
 grid.best_estimator_
 
 
-# In[210]:
+# In[ ]:
 
 
-dt = tree.DecisionTreeClassifier(min_impurity_decrease=0, min_samples_leaf= 4, max_features=4, random_state=42)
+dt = tree.DecisionTreeClassifier(max_depth=9, min_impurity_decrease=0, min_samples_leaf=8, max_features=3, random_state=42)
 grid_fit = False
 if grid_fit:
-    params = {'max_features' : [1,2,3,4,5,6,7,8],
-              'min_samples_leaf' : [2,3,4,5],
-              'min_impurity_decrease' : [0,0.01]
-             }
-    grid = GridSearchCV(estimator = dt,
-                  param_grid = params,
-                  cv = 5, iid = False, return_train_score=True)
+    params = {
+        'max_features': [1, 2, 3, 4, 5, 6, 7, 8],
+        'min_samples_leaf': [2, 3, 4, 5],
+        'min_impurity_decrease': [0, 0.01]
+    }
+    grid = GridSearchCV(
+        estimator = dt,
+        param_grid = params,
+        cv = 5, 
+        iid = False, 
+        return_train_score=True
+    )
     grid.fit(x_train, y_train)
+    grid.score(x_test, y_test)
+    print('Best score: %f' % grid.best_score_)
+    print('Best params: %s' % grid.best_params_)
 else:
     dt.fit(x_train, y_train)
     dt.score(x_train, y_train)
     dt.score(x_test, y_test)
 
 
-# In[69]:
+# ### Adaboost
+
+# In[ ]:
 
 
-grid.best_estimator_
+ada = ensemble.AdaBoostClassifier(
+    n_estimators=80,
+    base_estimator=None, # decision tree, by default
+    random_state = 42
+)
+grid_fit = False
+if grid_fit:
+    params = {
+        'n_estimators' : [20, 50, 80, 100],
+        'learning_rate' : [1, 2, 3, 0.8]
+    }
+    grid = GridSearchCV(
+        estimator = ada,
+        param_grid = params,
+        cv = 5, 
+        iid = False, 
+        return_train_score=True,
+        n_jobs=-1
+    )
+    grid.fit(x_train, y_train)
+    grid.score(x_test, y_test)
+    print('Best score: %f' % grid.best_score_)
+    print('Best params: %s' % grid.best_params_)
+else:
+    ada.fit(x_train, y_train)
+    ada.score(x_train, y_train)
+    ada.score(x_test, y_test)
 
 
-# In[211]:
+# ### Gradient Boosting
+
+# In[ ]:
+
+
+gbc = ensemble.GradientBoostingClassifier(
+    n_estimators=400, 
+    loss='deviance', 
+    learning_rate=0.15, 
+    subsample=0.9, 
+    random_state = 42
+)
+grid_fit = False
+if grid_fit:
+    params = {
+        'n_estimators' : [100, 200, 300, 400],
+        'learning_rate' : [0.1, 0.15, 0.2, 0.25],
+        'loss': ['deviance', 'exponential'],
+        'subsample': [1.0, 0.5, 0.8, 0.85, 0.9, 0.95]
+    }
+    grid = GridSearchCV(
+        estimator = gbc,
+        param_grid = params,
+        cv = 5,
+        iid = False, 
+        return_train_score=True, 
+        n_jobs=-1
+    )
+    grid.fit(x_train, y_train)
+    grid.score(x_test, y_test)
+    print('Best score: %f' % grid.best_score_)
+    print('Best params: %s' % grid.best_params_)
+else:
+    gbc.fit(x_train, y_train)
+    gbc.score(x_train, y_train)
+    gbc.score(x_test, y_test)
+
+
+# ### Bagging
+
+# In[ ]:
+
+
+bag = ensemble.BaggingClassifier(
+    base_estimator=None, # decision tree, by default
+    n_estimators=300,
+    max_samples=100,
+    max_features=6,
+    random_state = 42
+)
+grid_fit = False
+if grid_fit:
+    params = {
+        'n_estimators' : [20, 50, 80, 100, 200],
+        'max_samples' : [1, 2, 3, 5],
+        'max_features': [1, 2, 3, 5]
+    }
+    grid = GridSearchCV(estimator = bag,
+                  param_grid = params,
+                  cv = 5, iid = False, return_train_score=True, n_jobs=-1)
+    grid.fit(x_train, y_train)
+    grid.score(x_test, y_test)
+    grid.best_params_
+else:
+    bag.fit(x_train, y_train)
+    bag.score(x_train, y_train)
+    bag.score(x_test, y_test)
+
+
+# In[ ]:
 
 
 from model import Model, ModelsBenchmark
 from sklearn.ensemble import VotingClassifier
 
-models = [svc, rf, dt, knn]
+models = [svc, rf, dt, knn, ada, gbc, bag]
 # add voting method
 estimators = [ (model.__class__.__name__,model) for model in models]
 voting_clf = VotingClassifier(estimators=estimators, voting='soft', n_jobs=-1)
@@ -329,7 +443,7 @@ bench._scores
 
 # # Evaluating models
 
-# In[78]:
+# In[ ]:
 
 
 # reduce dimensionality to be able to plot data
@@ -343,7 +457,7 @@ def reduce_dimensions(X, fit=False):
     return pca.transform(X)
 
 
-# In[79]:
+# In[ ]:
 
 
 # print and plot metrics for the best one
@@ -381,7 +495,7 @@ print('Test Accuracy : %.2f ' % clf.score(x_test, y_test))
 # Below we make predictions on 2-dimensional data and plot the points labeled wrong.   
 # Currently, below part has a bug and doesn't run correctly.
 
-# In[92]:
+# In[ ]:
 
 
 # trying to solve the bug below, set the max_features attribute to 2
@@ -394,7 +508,7 @@ print('Test Accuracy : %.2f ' % clf.score(x_test, y_test))
 # clf = vot_plot
 
 
-# In[93]:
+# In[ ]:
 
 
 # plot both labels separately and our predictions on them
@@ -420,13 +534,13 @@ fig.colorbar(scatter, ax = axs[1])
 axs[1].set_title('Points with true label 1 ')
 
 
-# In[25]:
+# In[ ]:
 
 
 y_pred == 0
 
 
-# In[94]:
+# In[ ]:
 
 
 # print some correctly and incorrectly labeled data
@@ -464,7 +578,7 @@ print("====Incorrect samples =====")
 get_samples(x_test, y_test, y_pred, sample_type='incorrect') 
 
 
-# In[95]:
+# In[ ]:
 
 
 # Visualisation of the decision tree created by the algorithm, for fun and insight
@@ -485,7 +599,7 @@ graph
 
 # # Neural network model
 
-# In[105]:
+# In[ ]:
 
 
 import keras
@@ -508,7 +622,7 @@ model.add(layers.Dense(num_classes, activation='softmax'))
 model.summary()
 
 
-# In[106]:
+# In[ ]:
 
 
 model.compile(loss='categorical_crossentropy',
@@ -516,7 +630,7 @@ model.compile(loss='categorical_crossentropy',
             metrics=['accuracy'])
 
 
-# In[108]:
+# In[ ]:
 
 
 from keras.utils import to_categorical
@@ -525,13 +639,13 @@ batch_size = 1024
 history = model.fit(x_train, to_categorical(y_train), validation_split=.3, batch_size = batch_size, epochs = no_epochs )
 
 
-# In[109]:
+# In[ ]:
 
 
 model.evaluate(x_test, to_categorical(y_test))
 
 
-# In[110]:
+# In[ ]:
 
 
 df = pd.DataFrame({'epochs':history.epoch, 'loss': history.history['loss'], 
@@ -541,7 +655,7 @@ g = sns.pointplot(x="epochs", y="loss", data=df, fit_reg=False, color = 'yellow'
 # g = sns.pointplot(x="epochs", y="validation_loss", data=df, fit_reg=False, color='red')
 
 
-# In[111]:
+# In[ ]:
 
 
 import seaborn as sns
@@ -555,7 +669,7 @@ g = sns.pointplot(x="epochs", y="accuracy", data=df, fit_reg=False)
 # # Model voting 
 # Maybe below weights will help raise model accuracy
 
-# In[338]:
+# In[ ]:
 
 
 from sklearn.ensemble import VotingClassifier
