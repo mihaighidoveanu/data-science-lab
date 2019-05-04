@@ -5,3 +5,4 @@ imblearn
 seaborn
 pandas
 graphviz
+xgboost

@@ -422,6 +422,45 @@ else:
     bag.score(x_test, y_test)
 
 
+# ### XGBoost
+
+# In[ ]:
+
+
+import xgboost
+from sklearn.model_selection import GridSearchCV
+
+xgb = xgboost.XGBClassifier(
+    n_estimators=320,
+    max_depth=3,
+    learning_rate=0.1,
+    n_jobs=-1,
+    gamma=0,
+    min_child_weight=1,
+#     max_delta_step=0,
+    subsample=1,
+    random_state = 42
+)
+grid_fit = False
+if grid_fit:
+    params = {
+        'n_estimators' : [20, 50, 80, 100, 200, 300, 320],
+        'max_depth' : [1, 2, 3, 4, 5],
+        'learning_rate': [0.01, 0.05, 0.1, 0.15],
+        'gamma': [0, 1, 2]
+    }
+    grid = GridSearchCV(estimator = xgb,
+                  param_grid = params,
+                  cv = 5, iid = False, return_train_score=True, n_jobs=-1)
+    grid.fit(x_train, y_train)
+    grid.score(x_test, y_test)
+    grid.best_params_
+else:
+    xgb.fit(x_train, y_train)
+    xgb.score(x_train, y_train)
+    xgb.score(x_test, y_test)
+
+
 # In[ ]:
 
 
