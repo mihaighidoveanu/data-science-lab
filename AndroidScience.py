@@ -258,7 +258,7 @@ grid.best_estimator_
 
 
 # Random Forest
-rf =  ensemble.RandomForestClassifier(random_state = 42, max_features=2, max_depth=12, n_estimators=30, min_samples_split=5)
+rf =  ensemble.RandomForestClassifier(n_estimators=30, max_features=2, max_depth=12, min_samples_split=5, random_state=42)
 grid_fit = False
 if grid_fit:
     params = {
@@ -467,7 +467,7 @@ else:
 from model import Model, ModelsBenchmark
 from sklearn.ensemble import VotingClassifier
 
-models = [svc, rf, dt, knn, ada, gbc, bag]
+models = [svc, rf, dt, knn, ada, gbc, bag, xgb]
 # add voting method
 estimators = [ (model.__class__.__name__,model) for model in models]
 voting_clf = VotingClassifier(estimators=estimators, voting='soft', n_jobs=-1)
@@ -711,15 +711,17 @@ g = sns.pointplot(x="epochs", y="accuracy", data=df, fit_reg=False)
 # In[ ]:
 
 
-from sklearn.ensemble import VotingClassifier
+from sklearn import ensemble, svm, neighbors
 from collections import Counter
 estimators = [
-    ('svc', svm.SVC(kernel ='rbf', random_state=42, probability=True)),
-    ('rf', ensemble.RandomForestClassifier(n_estimators=100, min_impurity_decrease=0, min_samples_leaf=1, random_state=42)),
-    ('knn', neighbors.KNeighborsClassifier(n_neighbors=2))
+#     ('svc', svm.SVC(kernel = 'rbf', random_state=42, probability = True, C = 1, tol = .001, gamma = 9)),
+    ('rf', ensemble.RandomForestClassifier(random_state = 42, max_features=3, max_depth=12, n_estimators=30, min_samples_split=5)),
+    ('knn', neighbors.KNeighborsClassifier(n_neighbors=2)),
+    ('ada', ensemble.AdaBoostClassifier(n_estimators=80, random_state = 42)),
+    ('gb', ensemble.GradientBoostingClassifier(n_estimators=400, loss='deviance', learning_rate=0.15, subsample=0.9, random_state = 42))
 ]
-weights = [112, 89, 1]
-voting_classifier = VotingClassifier(estimators=estimators, voting='soft', weights=weights, n_jobs=-1)
+weights = [5, 10, 40, 140]
+voting_classifier = ensemble.VotingClassifier(estimators=estimators, voting='soft', weights=weights, n_jobs=-1)
 voting_classifier.fit(x_train, y_train)
 confidence = voting_classifier.score(x_test, y_test)
 predictions = voting_classifier.predict(x_test)
