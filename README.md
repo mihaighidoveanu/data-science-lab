@@ -1,5 +1,8 @@
 # Big Data
 
+## Documentation
+https://docs.google.com/document/d/1zAzEcm5NqVgkH3x4E6ddElkzTC5aC4mgBPaZ4P5xaLI/edit?usp=sharing
+
 ## insightfull kaggle kernels for the android dataset
 
 interesting take on the results
