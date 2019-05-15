@@ -20,8 +20,8 @@ class ModelsBenchmark(collections.UserList):
     def fit(self, x_train, y_train):
         self.models = [model.fit(x_train, y_train) for model in self]
            
-    def score(self, x, y):
-        scores = [model.score(x, y) for model in self]
+    def score(self, x, y, metric):
+        scores = [ metric(y, model.predict(x)) for model in self]
         self._scores = sorted( zip(scores, self.models), key = lambda x : x[0], reverse = True)
         self._sorted = list(map(lambda tpl : tpl[1], self._scores))
         return self._scores
